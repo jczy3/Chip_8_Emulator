@@ -1,0 +1,39 @@
+# Build folders
+/build/
+/out/
+/cmake-build-*/
+
+# CMake files
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+
+# Ninja
+.ninja_deps
+.ninja_log
+build.ninja
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Object files
+*.o
+*.obj
+*.dll
+*.lib
+*.a
+*.so
+
+# Logs
+*.log
+
+# VSCode
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
