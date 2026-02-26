@@ -1,10 +1,11 @@
 #include "chip8.h"
 #include <iostream>
 using std::cout;
-#define VX V[opcode & 0x0F00] 
-#define VY V[opcode & 0x00F0] 
+#define VX V[opcode & 0x0F00 >> 8] 
+#define VY V[opcode & 0x00F0 >> 4] 
 #define NN opcode & 0x00FF
 #define NNN opcode & 0x0FFF
+#define VF V[0xF]
 
 chip8::chip8()
 {
@@ -77,44 +78,72 @@ void chip8::emulateCycle()
 
     case 0x6000:        // (6XNN) Sets VX = NN
       VX = NN;
+      pc += 2;
     break;
 
     case 0x7000:        // (7XNN) Adds NN to VX (carry flag unchanged)
       VX += NN;
+      pc += 2;
     break;
 
     case 0x8000:
       switch (opcode & 0x000F){
-        case 0x0001:
-
+        case 0x0000:    // (8XY0) Set VX = VY
+          VX = VY;
+          pc += 2;
         break;
 
-        case 0x0002:
-
+        case 0x0001:    // (8XY1) Set VX |= VY
+          VX |= VY;
+          pc += 2;
         break;
 
-        case 0x0003:
-
+        case 0x0002:    // (8XY2) Set VX &= VY
+          VX &= VY;
+          pc += 2;
         break;
 
-        case 0x0004:
-
+        case 0x0003:    // (8XY3) Set VX ^= VY
+          VX ^= VY;
+          pc += 2;
         break;
 
-        case 0x0005:
-
+        case 0x0004:    // (8XY4) VX += VY
+          if (VY > 0xFF - VX)     // Overflow
+            VF = 1;
+          else 
+            VF = 0;
+          VX += VY;
+          pc += 2;
         break;
 
-        case 0x0006:
-
+        case 0x0005:    // (8XY5) VX -= VY
+          if (VX > 0x00 + VY)     // No underflow
+            VF = 1;
+          else  
+            VF = 0;
+          VX -= VY;
+          pc += 2;
         break;
 
-        case 0x0007:
-
+        case 0x0006:    // (8XY6) Right shift VX
+          VF = VX & 0x0001;
+          VX >>= 1;
+          pc += 2;
         break;
 
-        case 0x000E:
+        case 0x0007:    // (8XY7) VX = VY - VX
+          VX = VY - VX;     // Fix this, it is wrong
+          pc += 2;
+        break;
 
+        case 0x000E:    // (8XYE) Left shift VX
+          if (VX & 0x8000)
+            VF = 1;
+          else
+            VF = 0;
+          VX <<= 1;
+          pc += 2;
         break;
       }
     break;
