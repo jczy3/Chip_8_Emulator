@@ -1,8 +1,8 @@
 #include "chip8.h"
 #include <iostream>
 using std::cout;
-#define VX V[opcode & 0x0F00 >> 8] 
-#define VY V[opcode & 0x00F0 >> 4] 
+#define VX V[opcode & 0x0F00 >> 8]
+#define VY V[opcode & 0x00F0 >> 4]
 #define NN opcode & 0x00FF
 #define NNN opcode & 0x0FFF
 #define VF V[0xF]
@@ -54,7 +54,7 @@ void chip8::emulateCycle()
     case 0x1000:        // Jump to address NNN
       pc = NNN;
     break;
-      
+
     case 0x2000:        // Call subroutine at NNN
       stack[sp] = pc;
       ++sp;
@@ -64,16 +64,22 @@ void chip8::emulateCycle()
     case 0x3000:        // (3XNN) Skips next instruction if VX == NN
       if (VX == NN)
         pc += 4;
+      else
+        pc += 2;
     break;
 
     case 0x4000:        // (4XNN) Skips next instruction if VX != NN
       if (VX != NN)
         pc += 4;
+      else
+        pc += 2;
     break;
 
     case 0x5000:        // (5XY0) Skips next instruction if VX == VY
       if (VX == VY)
         pc += 4;
+      else
+        pc += 2;
     break;
 
     case 0x6000:        // (6XNN) Sets VX = NN
@@ -87,7 +93,8 @@ void chip8::emulateCycle()
     break;
 
     case 0x8000:
-      switch (opcode & 0x000F){
+      switch (opcode & 0x000F)
+      {
         case 0x0000:    // (8XY0) Set VX = VY
           VX = VY;
           pc += 2;
@@ -111,7 +118,7 @@ void chip8::emulateCycle()
         case 0x0004:    // (8XY4) VX += VY
           if (VY > 0xFF - VX)     // Overflow
             VF = 1;
-          else 
+          else
             VF = 0;
           VX += VY;
           pc += 2;
@@ -120,7 +127,7 @@ void chip8::emulateCycle()
         case 0x0005:    // (8XY5) VX -= VY
           if (VX > 0x00 + VY)     // No underflow
             VF = 1;
-          else  
+          else
             VF = 0;
           VX -= VY;
           pc += 2;
@@ -133,7 +140,11 @@ void chip8::emulateCycle()
         break;
 
         case 0x0007:    // (8XY7) VX = VY - VX
-          VX = VY - VX;     // Fix this, it is wrong
+          if (VY > 0x00 + VX)
+            VF = 1;
+          else
+            VF = 0;
+          VX = VY - VX;
           pc += 2;
         break;
 
@@ -147,12 +158,80 @@ void chip8::emulateCycle()
         break;
       }
     break;
+
+    case 0x9000:       // (9XY0) Skip next instruction if VX != VY
+      if (VX != VY)
+        pc += 4;
+      else
+        pc += 2;
+    break;
+
+    case 0xA000:      // (ANNN) Set index register to NNN
+      I = NNN;
+      pc += 2;
+    break;
+
+    case 0xB000:      // (BNNN) Jump to address NNN + V0
+      pc = NNN + V[0];
+    break;
+
+    case 0xC000:      // (CXNN) Set VX to the bitwise and of a random number and NN
+      VX = rand() & NN;
+      pc += 2;
+    break;
+
+    case 0xD000:      // (DXYN) Draw a sprite at (VX,VY) with a width of 8 pixels and height of N pixels
+
+    break;
+
+    case 0xE000:
+    switch(opcode & 0x000F)
+    {
+      case 0x000E:    // (EX9E) Skip next instruction if key[VX] is pressed
+        if (key[VX] >> 8)
+          pc += 4;
+        else
+          pc += 2;
+      break;
+
+      case 0x0001:    // (EXA1) Skip next instruction if key[VX] is not pressed
+        if (!(key[VX] >> 8))
+          pc += 4;
+        else
+          pc += 2;
+      break;
+    }
+    break;
+
+    case 0xF000:
+    switch(opcode & 0x00FF)
+    {
+      case 0x0007:    // (FX07) Set VX equal to value of delay timer
+      break;
+      case 0x000A:    // (FX0A) A key press is waited, then stored in VX (all instructions halted until next key event)
+      break;
+      case 0x0015:    // (FX15) Set delay timer to VX
+      break;
+      case 0x0018:    // (FX18) Set sound timer to VX
+      break;
+      case 0x001E:    // (FX1E) Add VX to I
+      break;
+      case 0x0029:    // (FX29) Set I to the location of the sprite for the character in VX
+      break;
+      case 0x0033:    // (FX33) Store binary coded decimal representation of VX
+      break;
+      case 0x0055:    // (FX55) Store V0 - VX in memory, starting at address I
+      break;
+      case 0x0065:    // (FX65) Load V0 - VX with values from memory, starting at address I
+      break;
+    }
+    break;
   }
 
   // Update Timers
   if (delay_timer > 0)
     --delay_timer;
-  
+
   if (sound_timer > 0)
     --sound_timer;
 }
