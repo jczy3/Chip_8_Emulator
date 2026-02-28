@@ -1,8 +1,9 @@
 #include "chip8.h"
 #include <iostream>
+#include <cstring>
 using std::cout;
-#define VX V[opcode & 0x0F00 >> 8]
-#define VY V[opcode & 0x00F0 >> 4]
+#define VX V[(opcode & 0x0F00) >> 8]
+#define VY V[(opcode & 0x00F0) >> 4]
 #define NN opcode & 0x00FF
 #define NNN opcode & 0x0FFF
 #define VF V[0xF]
@@ -22,8 +23,13 @@ void chip8::initalize()
   I      = 0;     // Reset index register
   sp     = 0;     // Reset stack pointer
 
-  for (int i{}; i < 80; ++i)
-    memory[i] = chip8_fontset[i];
+  memset(gfx, 0, sizeof(gfx));
+  memset(memory, 0, sizeof(memory));
+  memset(V, 0, sizeof(V));
+  memset(stack, 0, sizeof(stack));
+  memset(key, 0, sizeof(key));
+
+  drawFlag = false;
 }
 
 void chip8::emulateCycle()
@@ -38,7 +44,9 @@ void chip8::emulateCycle()
       switch(opcode & 0x000F)
       {
         case 0x00E0:    // Clear the screen
-
+          memset(gfx, 0, sizeof(gfx));
+          drawFlag = true;
+          pc += 2;
         break;
 
         case 0x00EE:    // Return from subroutine
@@ -48,6 +56,8 @@ void chip8::emulateCycle()
 
         default:
           cout << "Unknown opcode [0x0000]: 0x" << opcode << "\n";
+          pc += 2;
+          break;
       }
     break;
 
@@ -181,7 +191,26 @@ void chip8::emulateCycle()
     break;
 
     case 0xD000:      // (DXYN) Draw a sprite at (VX,VY) with a width of 8 pixels and height of N pixels
-
+    {
+      unsigned short height = opcode & 0x000F;
+      VF = 0;
+      for (int row = 0; row < height; ++row)
+      {
+        unsigned short pixel = memory[I + row];
+        for (int col = 0; col < 8; ++col)
+        {
+          if (pixel & (0x80 >> col))
+            {
+              int idx = ((VY + row) % 32) * 64 + ((VX + col) % 64);
+              if (gfx[idx])
+                VF = 1;
+              gfx[idx] ^= 1;
+            }
+        }
+      }
+      drawFlag = true;
+      pc += 2;
+    }
     break;
 
     case 0xE000:
@@ -236,3 +265,38 @@ void chip8::emulateCycle()
     --sound_timer;
 }
 
+bool chip8::loadApplication(const char *file)
+{
+    initalize();
+
+    FILE *fp = fopen(file, "rb");
+    if (fp == nullptr)
+    {
+        std::printf("Error: could not open file '%s'\n", file);
+        return false;
+    }
+
+    // Get file size
+    fseek(fp, 0, SEEK_END);
+    long size = ftell(fp);
+    rewind(fp);
+
+    // Check it fits in memory (memory from 0x200 to 0xFFF = 3584 bytes)
+    if (size > (4096 - 512))
+    {
+        std::printf("Error: ROM too large (%ld bytes)\n", size);
+        fclose(fp);
+        return false;
+    }
+
+    // Load ROM into memory starting at 0x200
+    if (fread(memory + 512, 1, size, fp) != (size_t)size)
+    {
+        std::printf("Error: could not read file '%s'\n", file);
+        fclose(fp);
+        return false;
+    }
+
+    fclose(fp);
+    return true;
+}

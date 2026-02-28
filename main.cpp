@@ -77,9 +77,10 @@ int main(int argc, char **argv)
     if (!c8.loadApplication(argv[1]))
         return 1;
 
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_TIMER) != 0)
+    if (!SDL_Init(SDL_INIT_VIDEO))
     {
         std::printf("SDL_Init failed: %s\n", SDL_GetError());
+        std::getchar();
         return 1;
     }
 
@@ -95,7 +96,7 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    SDL_Renderer *renderer = SDL_CreateRenderer(window, nullptr, SDL_RENDERER_ACCELERATED);
+    SDL_Renderer* renderer = SDL_CreateRenderer(window, nullptr);
     if (!renderer)
     {
         std::printf("SDL_CreateRenderer failed: %s\n", SDL_GetError());

@@ -1,13 +1,16 @@
-cmake_minimum_required(VERSION 3.26)
-project(hello C CXX)
+cmake_minimum_required(VERSION 3.20)
+project(Chip8 LANGUAGES CXX)
 
-find_package(SDL3 REQUIRED)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-add_executable(hello)
-
-target_sources(hello
-PRIVATE
+add_executable(hello
     main.cpp
+    chip8.cpp       
 )
 
-target_link_libraries(hello SDL3::SDL3)
+target_include_directories(hello PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+target_link_libraries(hello PRIVATE SDL3)
