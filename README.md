@@ -4,13 +4,13 @@ A fully functional CHIP-8 emulator written in modern C++ (C++20), implementing t
 
 This emulator can:
 
-*Load and execute original CHIP-8 ROMs
+* Load and execute original CHIP-8 ROMs
 
-*Run classic games like Pong, Tetris, and Space Invaders
+* Run classic games like Pong, Tetris, and Space Invaders
 
-*Render 64x32 monochrome graphics in real time
+* Render 64x32 monochrome graphics in real time
 
-*Accurately emulate timers and sprite collision behavior
+* Accurately emulate timers and sprite collision behavior
 
 A ROM is a binary program file containing CHIP-8 instructions. The emulator loads the ROM into memory at address 0x200 and begins executing instructions through a fetch–decode–execute cycle.
 
