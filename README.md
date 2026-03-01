@@ -1,4 +1,4 @@
-# Chip8 Emulator
+# Chip-8 Emulator
 
 A fully functional CHIP-8 emulator written in modern C++ (C++20), implementing the complete virtual machine architecture.
 
