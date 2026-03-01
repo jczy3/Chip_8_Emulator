@@ -6,6 +6,8 @@ public:
   unsigned char key[16];      // Store current state of the key
   unsigned char gfx[64 * 32]; // Graphics array (0 or 1)
   bool drawFlag;
+  unsigned char delay_timer{};
+  unsigned char sound_timer{};
 
   void emulateCycle();
   bool loadApplication(const char *file);
@@ -19,9 +21,6 @@ private:
   unsigned char V[16];        // V registers (V0-VF)
   unsigned short stack[16];   // Stack (16 levels)
   unsigned char memory[4096]; // Memory (4K)
-
-  unsigned char delay_timer{};
-  unsigned char sound_timer{};
 
   unsigned char chip8_fontset[80];
 

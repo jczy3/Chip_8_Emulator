@@ -4,8 +4,8 @@
 using std::cout;
 #define VX V[(opcode & 0x0F00) >> 8]
 #define VY V[(opcode & 0x00F0) >> 4]
-#define NN opcode & 0x00FF
-#define NNN opcode & 0x0FFF
+#define NN (opcode & 0x00FF)
+#define NNN (opcode & 0x0FFF)
 #define VF V[0xF]
 
 chip8::chip8()
@@ -157,10 +157,7 @@ void chip8::emulateCycle()
         break;
 
         case 0x0005:    // (8XY5) VX -= VY
-          if (VX > 0x00 + VY)     // No underflow
-            VF = 1;
-          else
-            VF = 0;
+          VF = (VX >= VY) ? 1 : 0;
           VX -= VY;
           pc += 2;
         break;
@@ -172,16 +169,13 @@ void chip8::emulateCycle()
         break;
 
         case 0x0007:    // (8XY7) VX = VY - VX
-          if (VY > 0x00 + VX)
-            VF = 1;
-          else
-            VF = 0;
+          VF = (VY >= VX) ? 1 : 0;
           VX = VY - VX;
           pc += 2;
         break;
 
         case 0x000E:    // (8XYE) Left shift VX
-          if (VX & 0x8000)
+          if (VX & 0x80)
             VF = 1;
           else
             VF = 0;
@@ -262,6 +256,18 @@ void chip8::emulateCycle()
         pc += 2;
       break;
       case 0x000A:    // (FX0A) A key press is waited, then stored in VX (all instructions halted until next key event) 
+      {
+        bool keyPressed = false;
+        for (int i = 0; i < 16; ++i)
+          if (key[i])
+          {
+            VX = i;
+            keyPressed = true;
+            break;
+          }
+        if (keyPressed)
+          pc += 2;
+      }
       break;
       case 0x0015:    // (FX15) Set delay timer to VX
         delay_timer = VX;
@@ -286,25 +292,18 @@ void chip8::emulateCycle()
         pc += 2;
       break;
       case 0x0055:    // (FX55) Store V0 - VX in memory, starting at address I
-        for (int i = 0; i <= VX; ++i)
+        for (int i = 0; i <= ((opcode & 0x0F00) >>8); ++i)
           memory[I + i] = V[i];
         pc += 2;
       break;
       case 0x0065:    // (FX65) Load V0 - VX with values from memory, starting at address I
-        for (int i = 0; i <= VX; ++i)
+        for (int i = 0; i <= ((opcode & 0x0F00) >>8); ++i)
           V[i] = memory[I + i];
         pc += 2;
       break;
     }
     break;
   }
-
-  // Update Timers
-  if (delay_timer > 0)
-    --delay_timer;
-
-  if (sound_timer > 0)
-    --sound_timer;
 }
 
 bool chip8::loadApplication(const char *file)

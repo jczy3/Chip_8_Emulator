@@ -200,6 +200,10 @@ int main(int argc, char **argv)
             for (int i = 0; i < cyclesPerFrame; ++i)
                 c8.emulateCycle();
 
+            // Timers tick at 60Hz, once per frame — not once per cycle
+            if (c8.delay_timer > 0) --c8.delay_timer;
+            if (c8.sound_timer > 0) --c8.sound_timer;
+
             accumulator -= frameStep;
         }
 
@@ -216,12 +220,10 @@ int main(int argc, char **argv)
                 }
             }
 
-            if (!SDL_UpdateTexture(tex, nullptr, pixels.data(), SCREEN_WIDTH * (int)sizeof(std::uint32_t)) != 0)
+            if (!SDL_UpdateTexture(tex, nullptr, pixels.data(), SCREEN_WIDTH * (int)sizeof(std::uint32_t)))
             {
                 std::printf("SDL_UpdateTexture failed: %s\n", SDL_GetError());
             }
-
-            c8.drawFlag = false;
         }
 
         // Draw scaled to window size
