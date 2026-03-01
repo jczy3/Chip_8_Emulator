@@ -9,6 +9,26 @@ static constexpr int SCREEN_WIDTH = 64;
 static constexpr int SCREEN_HEIGHT = 32;
 static constexpr int SCALE = 10;
 
+void keyboardUp(chip8 &myChip8, SDL_Keycode key)
+{
+    if (key == '1') myChip8.key[0x1] = 0;
+    else if (key == '2') myChip8.key[0x2] = 0;
+    else if (key == '3') myChip8.key[0x3] = 0;
+    else if (key == '4') myChip8.key[0xC] = 0;
+    else if (key == 'q') myChip8.key[0x4] = 0;
+    else if (key == 'w') myChip8.key[0x5] = 0;
+    else if (key == 'e') myChip8.key[0x6] = 0;
+    else if (key == 'r') myChip8.key[0xD] = 0;
+    else if (key == 'a') myChip8.key[0x7] = 0;
+    else if (key == 's') myChip8.key[0x8] = 0;
+    else if (key == 'd') myChip8.key[0x9] = 0;
+    else if (key == 'f') myChip8.key[0xE] = 0;
+    else if (key == 'z') myChip8.key[0xA] = 0;
+    else if (key == 'x') myChip8.key[0x0] = 0;
+    else if (key == 'c') myChip8.key[0xB] = 0;
+    else if (key == 'v') myChip8.key[0xF] = 0;
+}
+
 void keyboardDown(chip8 &myChip8, SDL_Keycode key)
 {
     // Keyboard mapping:
@@ -161,7 +181,7 @@ int main(int argc, char **argv)
                 break;
 
             case SDL_EVENT_KEY_UP:
-                keyboardDown(c8, e.key.key);
+                keyboardUp(c8, e.key.key);
                 break;
 
             default:
@@ -196,7 +216,7 @@ int main(int argc, char **argv)
                 }
             }
 
-            if (SDL_UpdateTexture(tex, nullptr, pixels.data(), SCREEN_WIDTH * (int)sizeof(std::uint32_t)) != 0)
+            if (!SDL_UpdateTexture(tex, nullptr, pixels.data(), SCREEN_WIDTH * (int)sizeof(std::uint32_t)) != 0)
             {
                 std::printf("SDL_UpdateTexture failed: %s\n", SDL_GetError());
             }

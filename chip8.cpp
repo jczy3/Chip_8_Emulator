@@ -30,6 +30,27 @@ void chip8::initalize()
   memset(key, 0, sizeof(key));
 
   drawFlag = false;
+
+  unsigned char fontset[80] = {
+    0xF0,0x90,0x90,0x90,0xF0, // 0
+    0x20,0x60,0x20,0x20,0x70, // 1
+    0xF0,0x10,0xF0,0x80,0xF0, // 2
+    0xF0,0x10,0xF0,0x10,0xF0, // 3
+    0x90,0x90,0xF0,0x10,0x10, // 4
+    0xF0,0x80,0xF0,0x10,0xF0, // 5
+    0xF0,0x80,0xF0,0x90,0xF0, // 6
+    0xF0,0x10,0x20,0x40,0x40, // 7
+    0xF0,0x90,0xF0,0x90,0xF0, // 8
+    0xF0,0x90,0xF0,0x10,0xF0, // 9
+    0xF0,0x90,0xF0,0x90,0x90, // A
+    0xE0,0x90,0xE0,0x90,0xE0, // B
+    0xF0,0x80,0x80,0x80,0xF0, // C
+    0xE0,0x90,0x90,0x90,0xE0, // D
+    0xF0,0x80,0xF0,0x80,0xF0, // E
+    0xF0,0x80,0xF0,0x80,0x80  // F
+  };
+  for (int i = 0; i < 80; ++i)
+    memory[i] = fontset[i];
 }
 
 void chip8::emulateCycle()
@@ -41,7 +62,7 @@ void chip8::emulateCycle()
   switch (opcode & 0xF000)
   {
     case 0x0000:
-      switch(opcode & 0x000F)
+      switch(opcode & 0x00FF)
       {
         case 0x00E0:    // Clear the screen
           memset(gfx, 0, sizeof(gfx));
@@ -50,8 +71,9 @@ void chip8::emulateCycle()
         break;
 
         case 0x00EE:    // Return from subroutine
-          pc = stack[sp];
           --sp;
+          pc = stack[sp];
+          pc += 2;
         break;
 
         default:
@@ -217,14 +239,14 @@ void chip8::emulateCycle()
     switch(opcode & 0x000F)
     {
       case 0x000E:    // (EX9E) Skip next instruction if key[VX] is pressed
-        if (key[VX] >> 8)
+        if (key[VX])
           pc += 4;
         else
           pc += 2;
       break;
 
       case 0x0001:    // (EXA1) Skip next instruction if key[VX] is not pressed
-        if (!(key[VX] >> 8))
+        if (!(key[VX]))
           pc += 4;
         else
           pc += 2;
@@ -236,22 +258,42 @@ void chip8::emulateCycle()
     switch(opcode & 0x00FF)
     {
       case 0x0007:    // (FX07) Set VX equal to value of delay timer
+        VX = delay_timer;
+        pc += 2;
       break;
-      case 0x000A:    // (FX0A) A key press is waited, then stored in VX (all instructions halted until next key event)
+      case 0x000A:    // (FX0A) A key press is waited, then stored in VX (all instructions halted until next key event) 
       break;
       case 0x0015:    // (FX15) Set delay timer to VX
+        delay_timer = VX;
+        pc += 2;
       break;
       case 0x0018:    // (FX18) Set sound timer to VX
+        sound_timer = VX;
+        pc += 2;
       break;
       case 0x001E:    // (FX1E) Add VX to I
+        I += VX;
+        pc += 2;
       break;
       case 0x0029:    // (FX29) Set I to the location of the sprite for the character in VX
+        I = VX * 5;
+        pc += 2;
       break;
       case 0x0033:    // (FX33) Store binary coded decimal representation of VX
+        memory[I] = VX / 100;
+        memory[I + 1] = (VX / 10) % 10;
+        memory[I + 2] = VX % 10;
+        pc += 2;
       break;
       case 0x0055:    // (FX55) Store V0 - VX in memory, starting at address I
+        for (int i = 0; i <= VX; ++i)
+          memory[I + i] = V[i];
+        pc += 2;
       break;
       case 0x0065:    // (FX65) Load V0 - VX with values from memory, starting at address I
+        for (int i = 0; i <= VX; ++i)
+          V[i] = memory[I + i];
+        pc += 2;
       break;
     }
     break;
