@@ -36,6 +36,7 @@ This project focuses on low-level system design and emulation of the original CH
 
 🔁 ROM loading and execution
 
-Pong running on CHIP8 Emulator:
+Pong running on CHIP-8 Emulator:
+
 <img width="644" height="350" alt="image" src="https://github.com/user-attachments/assets/5d45910c-e0ad-4ec0-9f05-9a030c47e495" />
 
